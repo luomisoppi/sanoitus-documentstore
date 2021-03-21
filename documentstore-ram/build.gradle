@@ -1,0 +1,6 @@
+dependencies {
+  implementation project(':documentstore-dsl'),
+                 "org.scala-stm:scala-stm_${gradle.scalaVersion}:0.9.1"
+
+  testImplementation project(':documentstore-test')               
+}

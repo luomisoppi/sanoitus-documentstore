@@ -1,0 +1,5 @@
+include 'documentstore-dsl', 'documentstore-dynamo', 'documentstore-ram', 'documentstore-test'
+
+rootProject.buildFileName = 'build-2.12.gradle'
+gradle.ext.scalaVersion='2.12'
+gradle.ext.scalaMinorVersion='13'

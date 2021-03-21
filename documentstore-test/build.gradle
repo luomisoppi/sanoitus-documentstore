@@ -1,0 +1,5 @@
+dependencies {
+  api project(':documentstore-dsl'), 
+      "org.sanoitus:sanoitus-test_${gradle.scalaVersion}:0.1.3",
+      "org.sanoitus:sanoitus-parallel-core_${gradle.scalaVersion}:0.1.3"
+}

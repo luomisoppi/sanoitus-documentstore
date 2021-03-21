@@ -1,0 +1,14 @@
+.gradle
+build
+build-2.12
+bin
+.cache-main
+.cache-tests
+.classpath
+.project
+.settings
+.DS_Store
+.bloop
+.metals
+.dotty-ide-disabled
+.vscode

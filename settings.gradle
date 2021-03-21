@@ -1,0 +1,4 @@
+include 'documentstore-dsl', 'documentstore-dynamo', 'documentstore-ram', 'documentstore-test'
+
+gradle.ext.scalaVersion='2.13'
+gradle.ext.scalaMinorVersion='4'

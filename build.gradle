@@ -1,0 +1,10 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'com.github.maiflai:gradle-scalatest:0.26'
+  }
+}
+
+apply from: 'common.gradle'

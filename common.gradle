@@ -1,0 +1,151 @@
+wrapper {
+  gradleVersion = "6.7.1"
+}
+
+configure(allprojects) {
+  version = "0.1.0-SNAPSHOT"
+
+  repositories {
+    mavenCentral()
+  }
+}
+
+configure(subprojects) {
+  apply plugin: 'java-library'
+  apply plugin: 'scala'
+  apply plugin: "com.github.maiflai.scalatest"
+
+  dependencies {
+    api "org.scala-lang:scala-library:${gradle.scalaVersion}.${gradle.scalaMinorVersion}",
+        "org.scala-lang.modules:scala-collection-compat_${gradle.scalaVersion}:2.4.2"
+  }
+
+  jar {
+    from(file(rootProject.file("LICENSE.txt")))
+    archiveBaseName = "sanoitus-${project.name}_${gradle.scalaVersion}"
+  }
+
+  test {
+    maxHeapSize = "2048m"
+    jvmArgs '-server'
+  }
+
+  def scalaOptions = [
+      "-feature",
+      "-encoding", "UTF-8",
+      "-unchecked",
+      "-deprecation",
+      "-Xlint",
+      "-language:existentials",
+      "-language:implicitConversions",
+      "-language:higherKinds",
+      "-Ywarn-unused",
+      "-Ywarn-numeric-widen"
+  ]
+
+  compileScala {
+    scalaCompileOptions.additionalParameters = scalaOptions
+  }
+
+  compileTestScala {
+    scalaCompileOptions.additionalParameters = scalaOptions
+  }  
+
+  task sourceJar(type: Jar) {
+    from sourceSets.main.scala
+    from(file(rootProject.file("LICENSE.txt")))
+    archiveBaseName = tasks.jar.archiveBaseName
+    classifier "sources"
+  }
+
+  task scalaDoc(type: org.gradle.api.tasks.scala.ScalaDoc) {
+    title = "sanoitus-${project.name}"
+    scalaDocOptions.additionalParameters = [
+      "-feature",
+      "-language:existentials",
+      "-language:implicitConversions",
+      "-language:higherKinds"
+    ]
+  }
+
+  task scalaDocJar(type: Jar, dependsOn: scalaDoc) {
+    from scalaDoc.destinationDir
+    archiveBaseName = tasks.jar.archiveBaseName
+    classifier "javadoc"
+  }
+}
+
+def publishedProjects = subprojects.findAll { !it.name.endsWith('-test') }
+
+configure(publishedProjects) {
+  apply plugin: 'maven-publish'
+  apply plugin: 'signing'
+
+  publishing { 
+    publications {
+      impl(MavenPublication) {
+        from components.java
+        artifact tasks.sourceJar
+        artifact tasks.scalaDocJar
+
+        groupId 'org.sanoitus'
+        artifactId "sanoitus-${project.name}_${gradle.scalaVersion}"
+        version version
+
+        pom {
+          name = "sanoitus-${project.name}_${gradle.scalaVersion}"
+          description = "sanoitus-${project.name}"
+          url = 'https://github.com/luomisoppi/sanoitus-documentstore'
+
+          licenses {
+            license {
+              name = 'MIT License'
+              url = 'http://www.opensource.org/licenses/mit-license'
+              distribution = 'repo'
+            }
+          }
+
+          developers {
+            developer {
+              name = 'Antti Luomi'
+              url = 'https://github.com/luomisoppi'
+            }
+          }
+
+          scm {
+            url = 'https://github.com/luomisoppi/sanoitus-documentstore'
+            connection = 'scm:git:git://github.com/luomisoppi/sanoitus-documentstore.git'
+          }
+        }
+      }
+    }
+
+    repositories {
+      maven {
+        url findProperty("sanoitus.repository.url") ?: "${rootProject.buildDir}/repo"
+        if (findProperty("sanoitus.repository.username") != null) {
+          credentials {
+              username findProperty("sanoitus.repository.username")
+              password findProperty("sanoitus.repository.password") ?: ''
+          }
+        }
+      }
+    }
+  }
+
+  signing {
+    sign publishing.publications.impl
+  }
+
+  tasks.withType(Sign) {
+    onlyIf { gradle.taskGraph.hasTask(":${project.name}:publish") }
+  }
+
+  publish.dependsOn test
+}
+
+task build
+build.dependsOn subprojects.test
+
+task publish
+publish.dependsOn publishedProjects.publish

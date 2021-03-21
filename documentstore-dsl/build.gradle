@@ -1,0 +1,3 @@
+dependencies {
+  api "org.sanoitus:sanoitus-core_${gradle.scalaVersion}:0.1.3"
+}
